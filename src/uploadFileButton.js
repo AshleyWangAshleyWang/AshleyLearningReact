@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import ReactFileReader from "react-file-reader";
-import ReadFile from "./reaFile";
 import styled from "styled-components";
+import DrugComparision from "./drugComparisionList";
+import {formatAbstractOuput} from "./formatAbstractOutput";
+import TrimNhiLogEVent from "./TrimNhiLog";
 
 const TextArea = styled.textarea`
   height: 95%;
@@ -22,21 +24,87 @@ const OutputContainer = styled.div`
   background-color: white;
 `;
 
+const UploadButton = styled.button`
+  padding: 10px;
+  color: white;
+  background-color: #009578;
+  border: 1px solid #000;
+  border-radius: 15px;
+  cursor: pointer;
+  outline: none;
+`
+
+
 let UploadFileBtnClickEvent = () => {
   const [fileName, setFileName] = useState("default value");
+  const [origin, setOrigin] = useState("");
+  const [abstract, setAbstract] = useState("");
+
+  const handleFiles = (files) => {
+    var reader = new FileReader();
+    reader.onload = () => {
+      setFileName(files[0].name);
+
+      //READ EVERY LINE
+      var lines = reader.result.split("\n"); //讀進去時把每行切成一小塊
+
+      // 挑選"藥品"相關行，並摘要文字成需要使用的內容
+      var responseArray = [];
+      lines.forEach(line => {
+        var linesWithoutDateAndTimeInfo = "";
+        var objectResult = {};
+        if (line.includes("Parameter" && "outpatientPrescription")) {
+          linesWithoutDateAndTimeInfo = line
+            .substring(86)
+            .replace("}]", "")
+            .replace(/^/, "{")
+            .concat("}")
+            .replace("}], [NHI_REQUEST, 1.48 WritePrescriptionSign]", "")
+            .replace(" [BasicData, {", "")
+            .replace(/\s/g, "");
+          try {
+            objectResult = JSON.parse(linesWithoutDateAndTimeInfo); //將字串轉換成物件
+            responseArray.push(objectResult);
+          } catch (error) {
+            console.log(linesWithoutDateAndTimeInfo);
+            console.log("error"); //可不用寫，只是為了方便確認error內容
+          }
+        }
+      })
+      // 篩選出MedicalOrderCategory等於01的列 (此列包含藥品資訊)
+      var haveDrugs = responseArray.filter(line => line.MedicalOrderCategory == 1);
+
+      // // Transform MedicalOrderCategory into MedicineName, by drugList.js's content
+      // var medicalItemCode = haveDrugs.map( (itemCode)=> {
+      //     for (var k = 0; k < Object.keys(DrugComparision).length; k++) {
+      //         if (itemCode.MedicalItemCode == Object.keys(DrugComparision)[k]) {
+      //             var medicineName = DrugComparision[Object.keys(DrugComparision)[k]]
+      //             break;
+      //         }else{
+      //             medicineName = itemCode.MedicalItemCode;  // if drugList.js has no this drug, print original MedicalItemCode
+      //         }
+      //     }
+      //     return medicineName;
+      // })
+      setAbstract(formatAbstractOuput(haveDrugs));
+
+      setOrigin(reader.result);
+    };
+    reader.readAsText(files[0]);
+  };
 
   return (
     <OutputContainer>
-      <ReactFileReader handleFiles={ReadFile} fileTypes={".txt"}>
+      <ReactFileReader handleFiles={handleFiles} fileTypes={".txt"}>
         <>
-          <button id="uploadButton" onClick={()=>{setFileName("File is received !")}}>Choose A File</button>
-          <span id="custom-text" style={{marginLeft:9, color: "gray"}}>{fileName}</span>
+          <UploadButton> Choose A File </UploadButton>
+          <span style={{ marginLeft: 9, color: "gray" }}>{fileName}</span>
         </>
       </ReactFileReader>
       <hr />
-      <div style={{height: "90%" }}>
-        <TextArea className="textarea" id="originalOutput"></TextArea>
-        <TextArea className="textarea" id="medicineAbstract"></TextArea>
+      <div style={{ height: "90%" }}>
+        <TextArea value={origin}></TextArea>
+        <TextArea value={abstract}></TextArea>
       </div>
     </OutputContainer>
   );

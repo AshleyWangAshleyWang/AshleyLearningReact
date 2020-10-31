@@ -38,7 +38,7 @@ const UserInfoPic = styled.img`
 let UserInfo = (props) => {
   return (
     <UserInfoStyle>
-      <div class="userInfoDiv">
+      <div>
         <UserInfoSpan style={{fontWeight:"bold"}}>{props.userName}</UserInfoSpan>
         <UserInfoSpan style={{color:"gray", padding:2}}>{props.userRole}</UserInfoSpan>
       </div>
