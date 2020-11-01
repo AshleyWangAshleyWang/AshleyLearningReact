@@ -4,7 +4,6 @@ import styled from "styled-components";
 import "./index.css";
 import NaviContent from "./navigationUL";
 // import App from './App';
-import GiveContent from "./App";
 import reportWebVitals from "./reportWebVitals";
 import UploadFileBtnClickEvent from "./uploadFileButton";
 

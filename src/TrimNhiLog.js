@@ -1,11 +1,9 @@
-import React, { useState } from "react";
-
-const TrimNhiLogEVent = (lines) => {
+import { useState } from "react";
+export const TrimNhiLogEVent = (lines) => {
   const [responseArray, setResponseArray] = useState([]);
   const [linesWithoutDateAndTimeInfo, setLinesWithoutDateAndTimeInfo] = "";
   const [objectResult, setObjectResult] = useState({});
 
-  //for (var i = 0; i < lines.length; i++) {
     lines.forEach(line => {
     if (line.includes("Parameter" && "outpatientPrescription")) {
       setLinesWithoutDateAndTimeInfo(
@@ -27,7 +25,5 @@ const TrimNhiLogEVent = (lines) => {
       }
     }
   })
-  return responseArray,linesWithoutDateAndTimeInfo,objectResult;
+  return responseArray,linesWithoutDateAndTimeInfo,objectResult
 };
-
-export default TrimNhiLogEVent;

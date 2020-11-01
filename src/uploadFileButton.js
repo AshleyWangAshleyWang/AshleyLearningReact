@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ReactFileReader from "react-file-reader";
 import styled from "styled-components";
-import DrugComparision from "./drugComparisionList";
-import {formatAbstractOuput} from "./formatAbstractOutput";
-import TrimNhiLogEVent from "./TrimNhiLog";
+import { formatAbstractOuput } from "./formatAbstractOutput";
 
 const TextArea = styled.textarea`
   height: 95%;
@@ -32,8 +30,7 @@ const UploadButton = styled.button`
   border-radius: 15px;
   cursor: pointer;
   outline: none;
-`
-
+`;
 
 let UploadFileBtnClickEvent = () => {
   const [fileName, setFileName] = useState("default value");
@@ -44,54 +41,37 @@ let UploadFileBtnClickEvent = () => {
     var reader = new FileReader();
     reader.onload = () => {
       setFileName(files[0].name);
-
-      //READ EVERY LINE
-      var lines = reader.result.split("\n"); //讀進去時把每行切成一小塊
-
-      // 挑選"藥品"相關行，並摘要文字成需要使用的內容
-      var responseArray = [];
-      lines.forEach(line => {
-        var linesWithoutDateAndTimeInfo = "";
-        var objectResult = {};
-        if (line.includes("Parameter" && "outpatientPrescription")) {
-          linesWithoutDateAndTimeInfo = line
-            .substring(86)
-            .replace("}]", "")
-            .replace(/^/, "{")
-            .concat("}")
-            .replace("}], [NHI_REQUEST, 1.48 WritePrescriptionSign]", "")
-            .replace(" [BasicData, {", "")
-            .replace(/\s/g, "");
-          try {
-            objectResult = JSON.parse(linesWithoutDateAndTimeInfo); //將字串轉換成物件
-            responseArray.push(objectResult);
-          } catch (error) {
-            console.log(linesWithoutDateAndTimeInfo);
-            console.log("error"); //可不用寫，只是為了方便確認error內容
-          }
-        }
-      })
-      // 篩選出MedicalOrderCategory等於01的列 (此列包含藥品資訊)
-      var haveDrugs = responseArray.filter(line => line.MedicalOrderCategory == 1);
-
-      // // Transform MedicalOrderCategory into MedicineName, by drugList.js's content
-      // var medicalItemCode = haveDrugs.map( (itemCode)=> {
-      //     for (var k = 0; k < Object.keys(DrugComparision).length; k++) {
-      //         if (itemCode.MedicalItemCode == Object.keys(DrugComparision)[k]) {
-      //             var medicineName = DrugComparision[Object.keys(DrugComparision)[k]]
-      //             break;
-      //         }else{
-      //             medicineName = itemCode.MedicalItemCode;  // if drugList.js has no this drug, print original MedicalItemCode
-      //         }
-      //     }
-      //     return medicineName;
-      // })
-      setAbstract(formatAbstractOuput(haveDrugs));
-
       setOrigin(reader.result);
     };
     reader.readAsText(files[0]);
   };
+
+  const [ddlinesWithoutDateAndTimeInfo, setLinesWithoutDateAndTimeInfo] = useState([]);
+
+  useEffect(() => {
+    const lines = origin.split("\n");
+    lines.forEach((line) => {
+      if (line.includes("Parameter" && "outpatientPrescription")) {
+        var linesWithoutDateAndTimeInfo = line
+          .substring(86)
+          .replace("}]", "")
+          .replace(/^/, "{")
+          .concat("}")
+          .replace("}], [NHI_REQUEST, 1.48 WritePrescriptionSign]", "")
+          .replace(" [BasicData, {", "")
+          .replace(/\s/g, "");
+        ddlinesWithoutDateAndTimeInfo.push(JSON.parse(linesWithoutDateAndTimeInfo));  
+      }
+      setLinesWithoutDateAndTimeInfo(ddlinesWithoutDateAndTimeInfo);
+    });
+  }, [ddlinesWithoutDateAndTimeInfo]);
+
+  // // 篩選出MedicalOrderCategory等於01的列 (此列包含藥品資訊)
+  var haveDrugs = ddlinesWithoutDateAndTimeInfo.filter(line => line.MedicalOrderCategory == 1);
+ 
+  useEffect(()=>{
+    setAbstract(formatAbstractOuput(haveDrugs));
+  },[origin])
 
   return (
     <OutputContainer>
