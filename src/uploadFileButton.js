@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactFileReader from "react-file-reader";
 import styled from "styled-components";
-import {outAbstract} from "./dealWithFile";
+import { outAbstract } from "./dealWithFile";
 
 const TextArea = styled.textarea`
   height: 95%;
@@ -32,10 +32,20 @@ const UploadButton = styled.button`
   outline: none;
 `;
 
+const TransformBtn = styled.button`
+margin-left: 20%;
+padding: 10px;
+color: white;
+background-color: #1E90FF;
+border: 1px solid #000;
+border-radius: 15px;
+cursor: pointer;
+outline: none;
+`
+
 let UploadFileBtnClickEvent = () => {
   const [fileName, setFileName] = useState("default value");
   const [origin, setOrigin] = useState("");
-  //const [abstract, setAbstract] = useState("");
 
   const handleFiles = (files) => {
     var reader = new FileReader();
@@ -46,18 +56,26 @@ let UploadFileBtnClickEvent = () => {
     reader.readAsText(files[0]);
   };
 
-  const abstract =outAbstract(origin);
-
+  // Click btn to transform
+  const [abstract, setAbstract] = useState('');
+  const [number, setNumber] = useState(0);
+  useEffect(() => {
+    console.log(number);
+    setAbstract(outAbstract(origin));
+  }, [number]);
   //const [abstract, haveDrugs] = outAbstract(origin);
 
   return (
     <OutputContainer>
+      <div style={{display: "flex"}}>
       <ReactFileReader handleFiles={handleFiles} fileTypes={".txt"}>
         <>
           <UploadButton> Choose A File </UploadButton>
           <span style={{ marginLeft: 9, color: "gray" }}>{fileName}</span>
         </>
       </ReactFileReader>
+      <TransformBtn onClick={() => setNumber(number + 1)}>Transform</TransformBtn>
+      </div>
       <hr />
       <div style={{ height: "90%" }}>
         <TextArea value={origin}></TextArea>
