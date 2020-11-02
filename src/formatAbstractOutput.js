@@ -5,7 +5,8 @@ export const formatAbstractOuput = (obj) => {
 Patient Name: ${a.Name}, Date: ${a.DateTime},
 Medicine:  ${a.MedicalItemCode},
 Days:  ${a.Days}, Medical Part: ${a.MedicalPart}, Usage: ${a.Usage}, Total:  ${a.Total}
-==================================================================+\n`;
+==================================================================
+`;
   });
   return out;
 };

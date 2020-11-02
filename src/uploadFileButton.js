@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactFileReader from "react-file-reader";
 import styled from "styled-components";
-import { formatAbstractOuput } from "./formatAbstractOutput";
+import {outAbstract} from "./dealWithFile";
 
 const TextArea = styled.textarea`
   height: 95%;
@@ -35,7 +35,7 @@ const UploadButton = styled.button`
 let UploadFileBtnClickEvent = () => {
   const [fileName, setFileName] = useState("default value");
   const [origin, setOrigin] = useState("");
-  const [abstract, setAbstract] = useState("");
+  //const [abstract, setAbstract] = useState("");
 
   const handleFiles = (files) => {
     var reader = new FileReader();
@@ -46,32 +46,9 @@ let UploadFileBtnClickEvent = () => {
     reader.readAsText(files[0]);
   };
 
-  const [ddlinesWithoutDateAndTimeInfo, setLinesWithoutDateAndTimeInfo] = useState([]);
+  const abstract =outAbstract(origin);
 
-  useEffect(() => {
-    const lines = origin.split("\n");
-    lines.forEach((line) => {
-      if (line.includes("Parameter" && "outpatientPrescription")) {
-        var linesWithoutDateAndTimeInfo = line
-          .substring(86)
-          .replace("}]", "")
-          .replace(/^/, "{")
-          .concat("}")
-          .replace("}], [NHI_REQUEST, 1.48 WritePrescriptionSign]", "")
-          .replace(" [BasicData, {", "")
-          .replace(/\s/g, "");
-        ddlinesWithoutDateAndTimeInfo.push(JSON.parse(linesWithoutDateAndTimeInfo));  
-      }
-      setLinesWithoutDateAndTimeInfo(ddlinesWithoutDateAndTimeInfo);
-    });
-  }, [ddlinesWithoutDateAndTimeInfo]);
-
-  // // 篩選出MedicalOrderCategory等於01的列 (此列包含藥品資訊)
-  var haveDrugs = ddlinesWithoutDateAndTimeInfo.filter(line => line.MedicalOrderCategory == 1);
- 
-  useEffect(()=>{
-    setAbstract(formatAbstractOuput(haveDrugs));
-  },[origin])
+  //const [abstract, haveDrugs] = outAbstract(origin);
 
   return (
     <OutputContainer>
