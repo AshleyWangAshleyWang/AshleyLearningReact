@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
-import ReactFileReader from "react-file-reader";
-import styled from "styled-components";
-import { formatAbstractOuput } from "./formatAbstractOutput";
+import React, { useEffect, useState } from 'react';
+import ReactFileReader from 'react-file-reader';
+import styled from 'styled-components';
+import { formatAbstractOuput } from './formatAbstractOutput';
+import { outAbstract } from './outAbstract';
 
 const TextArea = styled.textarea`
   height: 95%;
@@ -33,10 +34,9 @@ const UploadButton = styled.button`
 `;
 
 let UploadFileBtnClickEvent = () => {
-  const [fileName, setFileName] = useState("default value");
-  const [origin, setOrigin] = useState("");
-  const [abstract, setAbstract] = useState("");
-
+  const [fileName, setFileName] = useState('default value');
+  const [origin, setOrigin] = useState('');
+  console.log('in');
   const handleFiles = (files) => {
     var reader = new FileReader();
     reader.onload = () => {
@@ -46,45 +46,20 @@ let UploadFileBtnClickEvent = () => {
     reader.readAsText(files[0]);
   };
 
-  const [ddlinesWithoutDateAndTimeInfo, setLinesWithoutDateAndTimeInfo] = useState([]);
-
-  useEffect(() => {
-    const lines = origin.split("\n");
-    lines.forEach((line) => {
-      if (line.includes("Parameter" && "outpatientPrescription")) {
-        var linesWithoutDateAndTimeInfo = line
-          .substring(86)
-          .replace("}]", "")
-          .replace(/^/, "{")
-          .concat("}")
-          .replace("}], [NHI_REQUEST, 1.48 WritePrescriptionSign]", "")
-          .replace(" [BasicData, {", "")
-          .replace(/\s/g, "");
-        ddlinesWithoutDateAndTimeInfo.push(JSON.parse(linesWithoutDateAndTimeInfo));  
-      }
-      setLinesWithoutDateAndTimeInfo(ddlinesWithoutDateAndTimeInfo);
-    });
-  }, [ddlinesWithoutDateAndTimeInfo]);
-
-  // // 篩選出MedicalOrderCategory等於01的列 (此列包含藥品資訊)
-  var haveDrugs = ddlinesWithoutDateAndTimeInfo.filter(line => line.MedicalOrderCategory == 1);
- 
-  useEffect(()=>{
-    setAbstract(formatAbstractOuput(haveDrugs));
-  },[origin])
+  const [abstract, haveDrugs] = outAbstract(origin);
 
   return (
     <OutputContainer>
-      <ReactFileReader handleFiles={handleFiles} fileTypes={".txt"}>
+      <ReactFileReader handleFiles={handleFiles} fileTypes={'.txt'}>
         <>
           <UploadButton> Choose A File </UploadButton>
-          <span style={{ marginLeft: 9, color: "gray" }}>{fileName}</span>
+          <span style={{ marginLeft: 9, color: 'gray' }}>{fileName}</span>
         </>
       </ReactFileReader>
       <hr />
-      <div style={{ height: "90%" }}>
+      <div style={{ height: '90%' }}>
         <TextArea value={origin}></TextArea>
-        <TextArea value={abstract}></TextArea>
+        <TextArea value={abstract + '\n' + '有' + haveDrugs.length}></TextArea>
       </div>
     </OutputContainer>
   );
